@@ -279,16 +279,32 @@ export class IDSMaterial extends IDSFacet
     {
       if (name.startsWith("IFC_material_Layer_"))
       {
-        if (this.cardinality === "prohibited") return false;
-
-        const materialLayerData = userData[name];
-
         matchCount++;
 
-        if (this.value)
+        const materialLayerData = userData[name];
+        let value = materialLayerData["Material"] || "";
+
+        if (this.value) // check the Material value condition
         {
-          let value = materialLayerData["Material"] || "";
-          if (!this.matchValue(this.value, value)) return false;
+          if (this.matchValue(this.value, value))
+          {
+            if (this.cardinality === "prohibited") return false;
+          }
+          else
+          {
+            if (this.cardinality !== "prohibited") return false;
+          }
+        }
+        else // check if Material has a value
+        {
+          if (value)
+          {
+            if (this.cardinality === "prohibited") return false;
+          }
+          else
+          {
+            if (this.cardinality === "required") return false;
+          }
         }
       }
     }
@@ -321,16 +337,32 @@ export class IDSClassification extends IDSFacet
         const systemName = name.substring(19);
         if (this.matchValue(this.system, systemName))
         {
-          if (this.cardinality === "prohibited") return false;
-
-          const system = userData[name];
-
           matchCount++;
 
-          if (this.value)
+          const system = userData[name];
+          let value = system["ItemReference"] || "";
+
+          if (this.value) // check the Classification value condition
           {
-            let value = system["ItemReference"] || "";
-            if (!this.matchValue(this.value, value)) return false;
+            if (this.matchValue(this.value, value))
+            {
+              if (this.cardinality === "prohibited") return false;
+            }
+            else
+            {
+              if (this.cardinality !== "prohibited") return false;
+            }
+          }
+          else // check if Classification has a value
+          {
+            if (value)
+            {
+              if (this.cardinality === "prohibited") return false;
+            }
+            else
+            {
+              if (this.cardinality === "required") return false;
+            }
           }
         }
       }
@@ -371,14 +403,31 @@ export class IDSProperty extends IDSFacet
           {
             if (this.matchValue(this.baseName, propertyName))
             {
-              if (this.cardinality === "prohibited") return false;
-
               matchCount++;
 
-              if (this.value)
+              let value = pset[propertyName] || "";
+
+              if (this.value) // check the Property value condition
               {
-                let value = pset[propertyName] || "";
-                if (!this.matchValue(this.value, value)) return false;
+                if (this.matchValue(this.value, value))
+                {
+                  if (this.cardinality === "prohibited") return false;
+                }
+                else
+                {
+                  if (this.cardinality !== "prohibited") return false;
+                }
+              }
+              else // check if Property has a value
+              {
+                if (value)
+                {
+                  if (this.cardinality === "prohibited") return false;
+                }
+                else
+                {
+                  if (this.cardinality === "required") return false;
+                }
               }
             }
           }
@@ -410,14 +459,31 @@ export class IDSAttribute extends IDSFacet
     {
       if (this.matchValue(this.name, attributeName))
       {
-        if (this.cardinality === "prohibited") return false;
-
         matchCount++;
 
-        if (this.value)
+        let value = attributes[attributeName] || "";
+
+        if (this.value) // check the Attribute value condition
         {
-          let value = attributes[attributeName] || "";
-          if (!this.matchValue(this.value, value)) return false;
+          if (this.matchValue(this.value, value))
+          {
+            if (this.cardinality === "prohibited") return false;
+          }
+          else
+          {
+            if (this.cardinality !== "prohibited") return false;
+          }
+        }
+        else // check if Attribute has a value
+        {
+          if (value)
+          {
+            if (this.cardinality === "prohibited") return false;
+          }
+          else
+          {
+            if (this.cardinality === "required") return false;
+          }
         }
       }
     }
