@@ -77,7 +77,8 @@ class GMLLoader extends GISLoader
     let propElem = featureElem.firstElementChild;
     while (propElem)
     {
-      if (propElem.firstElementChild) // has children, it is geometry
+      if (!coordinates &&
+          propElem.firstElementChild?.namespaceURI.includes("gml"))
       {
         let geomElem = propElem.firstElementChild;
         geomType = geomElem.localName;
@@ -117,6 +118,8 @@ class GMLLoader extends GISLoader
         return this.extractLineStringCoordinates(geomElem, dimension);
       case "Polygon":
         return this.extractPolygonCoordinates(geomElem, dimension);
+      case "Surface":
+        return this.extractSurfaceCoordinates(geomElem, dimension);
       case "MultiPoint":
       case "MultiLineString":
       case "MultiCurve":
@@ -173,6 +176,44 @@ class GMLLoader extends GISLoader
       ringElem = ringElem.nextElementSibling;
     }
     return coords;
+  }
+
+  extractSurfaceCoordinates(geomElem, dimension)
+  {
+    let surfaceCoords = [];
+    let patchesElem = geomElem.firstElementChild;
+    if (patchesElem?.localName === "patches")
+    {
+      let patchElem = patchesElem.firstElementChild;
+      while (patchElem)
+      {
+        let patchType = patchElem.localName;
+        if (patchType === "PolygonPatch" ||
+            patchType === "Rectangle" ||
+            patchType === "Triangle")
+        {
+          const patchCoords = [];
+          let ringElem = patchElem.firstElementChild;
+          while (ringElem)
+          {
+            let coordElem = ringElem.firstElementChild?.firstElementChild;
+
+            if (coordElem?.localName === "coordinates")
+            {
+              patchCoords.push(this.parseCoordinates(coordElem));
+            }
+            else if (coordElem?.localName === "posList")
+            {
+              patchCoords.push(this.parsePosList(coordElem, dimension));
+            }
+            ringElem = ringElem.nextElementSibling;
+          }
+          surfaceCoords.push(patchCoords);
+        }
+        patchElem = patchElem.nextElementSibling;
+      }
+    }
+    return surfaceCoords;
   }
 
   extractMultiGeometryCoordinates(geomElem, dimension)

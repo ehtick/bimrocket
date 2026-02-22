@@ -72,6 +72,8 @@ class GISLoader extends THREE.Loader
           break;
         case "Polygon":
           this.createPolygon(name, coordinates, properties, parent);
+        case "Surface":
+          this.createMultiPolygon(name, coordinates, properties, parent);
           break;
         case "MultiPoint":
           this.createMultiPoint(name, coordinates, properties, parent);
@@ -248,7 +250,21 @@ class GISLoader extends THREE.Loader
     for (let i = 0; i < coordinates.length; i++)
     {
       let polygonCoords = coordinates[i];
-      this.createPolygon(name + "_" + i, polygonCoords, null, group);
+      let firstItem = polygonCoords[0]?.[0]?.[0];
+      if (typeof firstItem === "number")
+      {
+        // coordinates is an array of rings
+        this.createPolygon(name + "_" + i, polygonCoords, null, group);
+      }
+      else if (Array.isArray(firstItem) && typeof firstItem[0] === "number")
+      {
+        // coordinates is an array of array of rings
+        for (let j = 0; j < polygonCoords.length; j++)
+        {
+          this.createPolygon(name + "_" + i + "_" + j,
+            polygonCoords[j], null, group);
+        }
+      }
     }
     parent.add(group);
   }
