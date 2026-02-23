@@ -110,7 +110,7 @@ class IDSReportType extends ReportType
     if (appReq instanceof IDSApplicability)
     {
       let value = node.getAttribute("minOccurs");
-      if (value === null) appReq.minOccurs = 0;
+      if (value === null) appReq.minOccurs = 1;
       else appReq.minOccurs = parseInt(value);
 
       value = node.getAttribute("maxOccurs");

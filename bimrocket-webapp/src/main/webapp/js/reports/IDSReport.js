@@ -41,12 +41,14 @@ export class IDSSpecification extends Rule
 
   getMinOccurs()
   {
-    return this.applicability.minOccurs || 0;
+    return this.applicability.minOccurs === undefined ?
+      1 : this.applicability.minOccurs;
   }
 
   getMaxOccurs()
   {
-    return this.applicability.maxOccurs || null;
+    return this.applicability.maxOccurs === undefined ?
+      1 : this.applicability.maxOccurs;
   }
 
   getSeverity()
