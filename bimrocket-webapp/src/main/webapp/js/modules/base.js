@@ -75,6 +75,8 @@ import { ScriptTool } from "../tools/ScriptTool.js";
 import { AboutTool } from "../tools/AboutTool.js";
 import { OpenLinkTool } from "../tools/OpenLinkTool.js";
 import { ChatGPTTool } from "../tools/ChatGPTTool.js";
+import { WFSTool } from "../tools/WFSTool.js";
+import { MapViewTool  } from "../tools/MapViewTool.js";
 import { BooleanOperator } from "../builders/BooleanOperator.js";
 import { GeometryMerger } from "../builders/GeometryMerger.js";
 import { RectangleBuilder } from "../builders/RectangleBuilder.js";
@@ -469,6 +471,8 @@ export function load(application)
   const paintTool = new PaintTool(application);
   const chatGPTTool = new ChatGPTTool(application);
   const solarSimulatorTool = new SolarSimulatorTool(application);
+  const wfsTool = new WFSTool(application);
+  const mapViewTool  = new MapViewTool(application);
 
   const outlinerTool = new OutlinerTool(application);
   const inspectorTool = new InspectorTool(application);
@@ -626,6 +630,22 @@ export function load(application)
   const controlMenu = menuBar.addMenu("menu.control");
   controlMenu.addMenuItem(startControllersTool);
   controlMenu.addMenuItem(stopControllersTool);
+
+  let showGisMenu = true;
+  const modulesParam = application.params?.get("modules");
+  if (modulesParam)
+  {
+    const modules = modulesParam.split(",")
+      .map(moduleName => moduleName.trim())
+      .filter(moduleName => moduleName.length > 0);
+    showGisMenu = modules.includes("gis") || modules.includes("modules/gis");
+  }
+  if (showGisMenu)
+  {
+    const gisMenu = menuBar.addMenu("menu.gis");
+    gisMenu.addMenuItem(wfsTool);
+    gisMenu.addMenuItem(mapViewTool);
+  }
 
   const panelsMenu = menuBar.addMenu("menu.panels");
   panelsMenu.addMenuItem(outlinerTool);
