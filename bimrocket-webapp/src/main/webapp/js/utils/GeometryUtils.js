@@ -16,6 +16,15 @@ class GeometryUtils
   static _vector5 = new THREE.Vector3();
   static _plane1 = new THREE.Plane();
 
+  /**
+   * Tests if the given point is on the specified segment.
+   *
+   * @param {THREE.Vector3} point - the point
+   * @param {THREE.Vector3} pointA - the first point of the segment
+   * @param {THREE.Vector3} pointB - the second point of the segment
+   * @param {number} distance - the max distance to consider that point is on segment
+   * @returns {boolean} - true if point is on segment, false otherwise
+   */
   static isPointOnSegment(point, pointA, pointB, distance = 0.0001)
   {
     const projectedPoint = this._vector1;
@@ -27,6 +36,16 @@ class GeometryUtils
     return false;
   }
 
+  /**
+   * Projects a point on the specified segment.
+   *
+   * @param {THREE.Vector3} point - the point
+   * @param {THREE.Vector3} pointA - the first point of the segment
+   * @param {THREE.Vector3} pointB - the second point of the segment
+   * @param {THREE.Vector3} projectedPoint - the projected point (optional)
+   * @returns {THREE.Vector3} the projected point or null if the point can not
+   *   be projected on the segment
+   */
   static projectPointOnSegment(point, pointA, pointB, projectedPoint)
   {
     const vAB = this._vector2;
@@ -57,6 +76,16 @@ class GeometryUtils
     return null;
   }
 
+  /**
+   * Intersects 2 lines.
+   *
+   * @param {THREE.Line} line1 - the first line
+   * @param {THREE.Line} line2 - the second line
+   * @param {THREE.Vector3} position1 - the closest point of line1 to line2
+   * @param {THREE.Vector3} position2 - the closest point of line2 to line1
+   * @returns {number} the distance between position1 and position 2 or -1 if
+   *   lines do not intersect.
+   */
   static intersectLines(line1, line2, position1, position2)
   {
     const vector1 = GeometryUtils._vector1;
@@ -88,6 +117,14 @@ class GeometryUtils
     return -1;
   }
 
+  /**
+   * Calculates the centroid of a vertex array.
+   *
+   * @param {THREE.Vector3[]} vertexPositions - the vertex array
+   * @param {function} accessFn - the function to access the vertex (optional)
+   * @param {THREE.Vector3} centroid - the calculated centroid (optional)
+   * @returns {THREE.Vector3} the calculated centroid
+   */
   static centroid(vertexPositions, accessFn, centroid)
   {
     if (!(centroid instanceof THREE.Vector3)) centroid = new THREE.Vector3();
@@ -116,12 +153,19 @@ class GeometryUtils
     return centroid;
   }
 
+  /**
+   * Calculates the normal of a vertex array using the Newell's method.
+   *
+   * @param {THREE.Vector3[]} vertexPositions - the vertex array
+   * @param {function} accessFn - the function to access the vertex (optional)
+   * @param {THREE.Vector3} normal - the calculated normal (optional)
+   * @returns {THREE.Vector3} the calculated normal
+   */
   static calculateNormal(vertexPositions, accessFn, normal)
   {
     if (!(normal instanceof THREE.Vector3)) normal = new THREE.Vector3();
     else normal.set(0, 0, 0);
 
-    // Newell's method
     const count = vertexPositions.length;
     let pi, pj;
     for (let i = 0; i < count; i++)
@@ -146,7 +190,7 @@ class GeometryUtils
   }
 
   /**
-   * Converts a local normal to WCS
+   * Converts a local normal to WCS.
    *
    * @param {THREE.Vector3} normal - vector to convert to WCS
    * @param {THREE.Matrix4} matrixWorld - the matrix where normal is referenced
@@ -177,7 +221,7 @@ class GeometryUtils
    * @param {THREE.Vector2} point1
    * @param {THREE.Vector2} point2
    * @param {THREE.Vector2} point3
-   * @returns {THREE.Vector2}
+   * @returns {THREE.Vector2} the center of the circle
    */
   static getCircleCenter(point1, point2, point3)
   {
@@ -238,8 +282,8 @@ class GeometryUtils
   /**
    * Subtracts offsetVector from the points of the given rings.
    *
-   * @param {Vector3} offsetVector
-   * @param {Vector2[] | Vector3[]} rings
+   * @param {THREE.Vector3} offsetVector
+   * @param {THREE.Vector2[] | THREE.Vector3[]} rings
    */
   static offsetRings(offsetVector, ...rings)
   {
@@ -257,10 +301,10 @@ class GeometryUtils
   }
 
   /**
-   * Clones an array of Vector2 or Vector3
+   * Clones an array of Vector2 or Vector3.
    *
-   * @param {Vector2[] | Vector3[]} ring - the array of vectors
-   * @returns {Vector2[] | Vector3} the cloned ring
+   * @param {THREE.Vector2[] | THREE.Vector3[]} ring - the array of vectors
+   * @returns {THREE.Vector2[] | THREE.Vector3} the cloned ring
    */
   static cloneRing(ring)
   {
@@ -276,10 +320,10 @@ class GeometryUtils
   }
 
   /**
-   * Add nextPoints to points without repeating vertices
+   * Add nextPoints to points without repeating vertices.
    *
-   * @param {Vector2[] | Vector3[]} points - the array of vectors
-   * @param {Vector2[] | Vector3[]} nextPoints - the array of vectors
+   * @param {THREE.Vector2[] | THREE.Vector3[]} points - the array of vectors
+   * @param {THREE.Vector2[] | THREE.Vector3[]} nextPoints - the array of vectors
    */
   static joinPointArrays(points, nextPoints)
   {
@@ -303,7 +347,15 @@ class GeometryUtils
     }
   }
 
-  /* triangulate a 3D face */
+  /**
+   * Triangulates a planar 3d face with holes.
+   *
+   * @param {THREE.Vector3[]} vertices - the external contour of the face
+   * @param {THREE.Vector3[][]} holes - the vertices of the holes
+   * @param {THREE.Vector3} normal - the face normal (optional)
+   * @returns {number[][]} array of triangles [i0, i1, i2] where ix is
+   *   an index to a face vertex
+   */
   static triangulateFace(vertices, holes, normal)
   {
     const vx = GeometryUtils._vector1;
@@ -351,21 +403,37 @@ class GeometryUtils
     return THREE.ShapeUtils.triangulateShape(projectedVertices, projectedHoles);
   }
 
-  static intersectLinePlane(v1, v2, plane)
+  /**
+   * Finds the point of intersection between a segment and a plane.
+   *
+   * @param {THREE.Vector3} v1 - the first point of the segment
+   * @param {THREE.Vector3} v2 - the second point of the segment
+   * @param {THREE.Plane} plane - the plane
+   * @param {number} epsilon - the max distance to consider intersection
+   * @returns {THREE.Vector3} the intersection point or null if they do not
+   *   intersect
+   */
+  static intersectLinePlane(v1, v2, plane, epsilon = 0.00001)
   {
     let v21 = v2.clone().sub(v1);
 
-    let t = -(plane.normal.dot(v1) + plane.constant) / plane.normal.dot(v21);
+    let d = plane.normal.dot(v21);
+
+    if (Math.abs(d) < epsilon) return null;
+
+    let t = -(plane.normal.dot(v1) + plane.constant) / d;
+
+    if (t < -epsilon || t > 1 + epsilon) return null;
 
     return v21.multiplyScalar(t).add(v1);
   }
 
   /**
-   * Returns an orthogonal vector
+   * Returns an orthogonal vector.
    *
    * @param {THREE.Vector3} vector - the input vector
    * @param {THREE.Vector3} orthoVector - the output vector
-   * @returns {THREE.Vector3} ortho - an orthogonal vector of the given vector.
+   * @returns {THREE.Vector3} ortho - an orthogonal vector of the given vector
    */
   static orthogonalVector(vector, orthoVector)
   {
@@ -390,11 +458,11 @@ class GeometryUtils
   }
 
   /**
-   * Calculates the area of a BufferGeometry
+   * Calculates the area of a BufferGeometry.
    *
-   * @param {BufferGeometry} geometry - the BufferGeometry
-   * @param {Matrix4} matrix - the matrix to apply to geometry vertices
-   * @returns {Number} area - the area of the BufferGeometry
+   * @param {THREE.BufferGeometry} geometry - the BufferGeometry
+   * @param {THREE.Matrix4} matrix - the matrix to apply to geometry vertices
+   * @returns {number} area - the area of the BufferGeometry
    */
   static getBufferGeometryArea(geometry, matrix)
   {
@@ -481,11 +549,11 @@ class GeometryUtils
   }
 
   /**
-   * Simplified version of BufferGeometryUtils.mergeBufferGeometries
+   * Simplified version of BufferGeometryUtils.mergeBufferGeometries.
    *
-   * @param {Array<BufferGeometry>} geometries
-   * @param {Boolean} useGroups
-   * @return {BufferAttribute}
+   * @param {THREE.BufferGeometry[]} geometries to merge
+   * @param {boolean} useGroups
+   * @return {THREE.BufferGeometry} the merged geometry
    */
   static mergeBufferGeometries(geometries, useGroups = false)
   {
@@ -600,7 +668,9 @@ class GeometryUtils
   }
 
   /**
-   * @param {Array<BufferAttribute>} attributes
+   * Merges the buffer attributes.
+   *
+   * @param {BufferAttribute[]} attributes
    * @return {BufferAttribute}
    */
   static mergeBufferAttributes(attributes)

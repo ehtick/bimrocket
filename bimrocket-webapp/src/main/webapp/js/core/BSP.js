@@ -407,8 +407,11 @@ class BSP
         if (pi !== pj && pi + pj === 0)
         {
           let vij = GeometryUtils.intersectLinePlane(vi, vj, plane);
-          frontPolygon.addVertex(vij);
-          backPolygon.addVertex(vij);
+          if (vij)
+          {
+            frontPolygon.addVertex(vij);
+            backPolygon.addVertex(vij);
+          }
         }
       }
       if (frontPolygon.vertices.length >= 3) // ??
