@@ -72,6 +72,7 @@ class GISLoader extends THREE.Loader
           break;
         case "Polygon":
           this.createPolygon(name, coordinates, properties, parent);
+          break;
         case "Surface":
           this.createMultiPolygon(name, coordinates, properties, parent);
           break;
