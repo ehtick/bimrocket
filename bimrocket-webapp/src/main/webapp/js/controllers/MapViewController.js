@@ -1,7 +1,8 @@
 /**
  * MapViewController.js
  *
- * @author nexus, realor
+ * @author nexus
+ * @author realor
  */
 
 import { Controller } from "./Controller.js";
@@ -12,6 +13,7 @@ import { MapView, MapProvider, LODFrustum, LODRaycast, UnitsUtils,
          OpenMapTilesProvider } from "geo-three";
 import { MapBoxHeightProvider } from "../io/gis/MapBoxHeightProvider.js";
 import { WMSProvider } from "../io/gis/WMSProvider.js";
+import { RateLimiter } from "../utils/RateLimiter.js";
 import { toUtm, fromUtm } from "../lib/utm-lonlat.js";
 import * as THREE from "three";
 
@@ -39,22 +41,27 @@ class MapViewController extends Controller
     this.heightProvider = "";
     this.utmZoneNumber = 0; // 0: web mercator
     this.utmZoneLetter = "";
+    this.maxRequestPerSecond = 100;
 
     this._mapView = null;
     this._onNodeChanged = this.onNodeChanged.bind(this);
     this._lastParameters = null;
+    this._rateLimiter = new RateLimiter(this.maxRequestPerSecond, 200);
   }
 
   onStart()
   {
     this.application.addEventListener("scene", this._onNodeChanged);
     this.updateMap();
+    this._rateLimiter.maxTasksPerSecond = this.maxRequestPerSecond;
+    this._rateLimiter.start();
   }
 
   onStop()
   {
     this.application.removeEventListener("scene", this._onNodeChanged);
     this.removeMap();
+    this._rateLimiter.stop();
   }
 
   onNodeChanged(event)
@@ -262,16 +269,19 @@ class ControlMapProvider extends MapProvider
 
   fetchTile(zoom, x, y)
   {
-    return new Promise((resolve, reject) =>
+    const controller = this.controller;
+    return controller._rateLimiter.schedule(() =>
     {
-      const promise = this.provider.fetchTile(zoom, x, y);
-      promise
-        .then(result => {
+      return new Promise((resolve, reject) =>
+      {
+        this.provider.fetchTile(zoom, x, y)
+         .then(result => {
            resolve(result);
            // repaint the scene to show the fetched tile
-           this.controller.application.repaint();
-         })
+           controller.application.repaint();
+        })
         .catch(error => reject(error));
+      });
     });
   }
 

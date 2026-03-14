@@ -6,10 +6,11 @@
 
 class RateLimiter
 {
-  constructor(maxPerSecond)
+  constructor(maxTasksPerSecond = 100, runInterval = 1000)
   {
     this.queue = [];
-    this.maxPerSecond = maxPerSecond;
+    this.maxTasksPerSecond = maxTasksPerSecond;
+    this.runInterval = runInterval; // millis
     this.timer = null;
     this.running = false;
   }
@@ -23,12 +24,15 @@ class RateLimiter
     {
       if (!this.running) return;
 
-      for (let i = 0; i < this.maxPerSecond && this.queue.length > 0; i++)
+      const maxTasks = Math.max(1,
+        Math.floor(this.runInterval * this.maxTasksPerSecond / 1000));
+
+      for (let i = 0; i < maxTasks && this.queue.length > 0; i++)
       {
         const task = this.queue.shift();
         task();
       }
-    }, 1000);
+    }, this.runInterval);
   }
 
   stop()
