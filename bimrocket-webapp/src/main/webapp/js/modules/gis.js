@@ -5,6 +5,7 @@
  */
 
 import { GeoJSONLoader } from "../io/gis/GeoJSONLoader.js";
+import { GeoJSONExporter } from "../io/gis/GeoJSONExporter.js";
 import { GMLLoader } from "../io/gis/GMLLoader.js";
 import { ASCIIGridLoader } from "../io/gis/ASCIIGridLoader.js";
 import { OnTerrainPositioner } from "../builders/OnTerrainPositioner.js";
@@ -27,6 +28,10 @@ export function load(application)
     {
       class : GeoJSONLoader,
       loadMethod : 0
+    },
+    exporter :
+    {
+      class : GeoJSONExporter
     }
   };
 
@@ -55,7 +60,7 @@ export function load(application)
       loadMethod : 2
     }
   };
-  
+
   // create tools
   const wfsTool = new WFSTool(application);
   const mapViewTool  = new MapViewTool(application);
@@ -66,7 +71,7 @@ export function load(application)
   const gisMenu = menuBar.addMenu("menu.gis", menuBar.menus.length - 2);
   gisMenu.addMenuItem(wfsTool);
   gisMenu.addMenuItem(mapViewTool);
-  
+
   // load bundles
   BundleManager.setBundle("base", "i18n/base");
   BundleManager.setBundle("gis", "i18n/gis");
