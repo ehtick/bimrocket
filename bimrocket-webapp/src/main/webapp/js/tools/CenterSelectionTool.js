@@ -38,8 +38,8 @@ class CenterSelectionTool extends Tool
       const aspect = container.clientWidth / container.clientHeight;
       const camera = application.camera;
 
-      application.scene.updateMatrixWorld(true);
-      ObjectUtils.zoomAll(camera, objects, aspect, true);
+      application.baseObject.updateMatrixWorld(true);
+      ObjectUtils.zoomAll(camera, objects, aspect);
 
       application.notifyObjectsChanged(camera, this);
     }
