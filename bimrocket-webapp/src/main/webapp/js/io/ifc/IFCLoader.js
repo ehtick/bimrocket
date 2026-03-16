@@ -63,7 +63,8 @@ class IFCLoader extends THREE.Loader
       "IfcWindow",
       "IfcOpeningElement"
     ],
-    retainIfcFile: this.RETAIN_IFC_FILE_YES,
+    retainIfcFile : this.RETAIN_IFC_FILE_YES,
+    referenceSurfaceNormalIsY: true,
     voidingMode : this.VOIDING_MODE_ALL,
     faceSetOptimizationRange : [0, 1000] // range of number of faces [min, max] to optimize the geometry
   };
@@ -1525,6 +1526,7 @@ class IfcSurfaceCurveSweptAreaSolidHelper
   {
     if (this.object3D === null)
     {
+      const loader = this.loader;
       const swept = this.entity;
       const profileDef = swept.SweptArea; // IfcProfileDef
       const position = swept.Position; // IfcAxis2Placement3D
@@ -1542,6 +1544,17 @@ class IfcSurfaceCurveSweptAreaSolidHelper
         const profile = this.helper(profileDef).getProfile();
         if (profile)
         {
+          if (loader.options.referenceSurfaceNormalIsY)
+          {
+            // Rotate the profile 90 degrees to assume that the Y vector of
+            // the sweep frame is the normal to the reference surface instead
+            // of the X vector indicated by the IFC specification.
+            const matrix = new THREE.Matrix4().makeRotationZ(Math.PI / 2);
+            matrix.multiply(profile.matrix);
+            matrix.decompose(profile.position, profile.quaternion, profile.scale);
+            profile.matrix.copy(matrix);
+          }
+
           try
           {
             const solid = new Solid();
