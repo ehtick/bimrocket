@@ -504,11 +504,20 @@ class ObjectUtils
     if (box.isEmpty()) return false;
 
     const center = new THREE.Vector3();
-    box.getCenter(center).negate();
+    box.getCenter(center);
 
-    baseObject.position.copy(center);
-    baseObject.updateMatrix();
+    const delta = new THREE.Vector3();
+    const offset = delta.addVectors(center, baseObject.position).length();
+
+    // only reduce coordinates if offset > 10000
+    if (offset > 10000)
+    {
+      center.negate();
+      baseObject.position.copy(center);
+      baseObject.updateMatrix();
+    }
     baseObject.updateMatrixWorld(true);
+
     return true;
   }
 
