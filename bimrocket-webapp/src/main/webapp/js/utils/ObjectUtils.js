@@ -352,22 +352,30 @@ class ObjectUtils
       {
         if (object.visible !== appearance.visible)
         {
-          object.visible = appearance.visible;
-          changed.add(object);
-
-          if (object.visible)
+          // visibility change
+          if (this.isHidden(object, true) && appearance.visible)
           {
-            // make ancestors visible
-            let ancestor = object.parent;
-            while (ancestor !== null && !visited.has(ancestor))
+            // do not show hidden objects
+          }
+          else
+          {
+            object.visible = appearance.visible;
+            changed.add(object);
+
+            if (object.visible)
             {
-              if (ancestor.visible === false)
+              // make ancestors visible
+              let ancestor = object.parent;
+              while (ancestor !== null && !visited.has(ancestor))
               {
-                ancestor.visible = true;
-                changed.add(ancestor);
+                if (ancestor.visible === false)
+                {
+                  ancestor.visible = true;
+                  changed.add(ancestor);
+                }
+                visited.add(ancestor);
+                ancestor = ancestor.parent;
               }
-              visited.add(ancestor);
-              ancestor = ancestor.parent;
             }
           }
         }
@@ -850,6 +858,8 @@ class ObjectUtils
     object.links[name || relatedObject.name] = relatedObject;
   }
 
+  /* selection options */
+
   static setSelectionEnabled(object, value)
   {
     this.getSelectionOptions(object, true).enabled = value;
@@ -892,15 +902,17 @@ class ObjectUtils
     return options;
   }
 
+  /* export options */
+
   static isExportable(object)
   {
     if (object.name && object.name.startsWith(THREE.Object3D.HIDDEN_PREFIX))
       return false; // hidden object
 
-    const exportInfo = this.getExportOptions(object);
-    if (exportInfo)
+    const options = this.getExportOptions(object);
+    if (options)
     {
-      if (exportInfo.export === false) // marked as non exportable
+      if (options.export === false) // marked as non exportable
       {
         return false;
       }
@@ -915,10 +927,10 @@ class ObjectUtils
 
   static isExportableChildren(object)
   {
-    const exportInfo = this.getExportOptions(object);
-    if (exportInfo)
+    const options = this.getExportOptions(object);
+    if (options)
     {
-      if (exportInfo.exportChildren === false) // children non exportable
+      if (options.exportChildren === false) // children non exportable
       {
         return false;
       }
@@ -942,14 +954,47 @@ class ObjectUtils
     return options;
   }
 
+  /* visibility options */
+
+  static isHidden(object, ancestors = false)
+  {
+    const options = this.getVisibilityOptions(object);
+    if (options)
+    {
+      if (options.hidden === true) return true;
+    }
+    return ancestors && object.parent && this.isHidden(object.parent, true);
+  }
+
+  static setHidden(object, hidden)
+  {
+    this.getVisibilityOptions(object, true).hidden = Boolean(hidden);
+  }
+
   static isGhost(object)
   {
-    return object.userData.ghost === true;
+    const options = this.getVisibilityOptions(object);
+    if (options)
+    {
+      return options.ghost === true;
+    }
+    return false;
   }
 
   static setGhost(object, ghost)
   {
-    object.userData.ghost = Boolean(ghost);
+    this.getVisibilityOptions(object, true).ghost = Boolean(ghost);
+  }
+
+  static getVisibilityOptions(object, create = false)
+  {
+    let options = object.userData.visibility;
+    if (typeof options !== "object" && create)
+    {
+      options = {};
+      object.userData.visibility = options;
+    }
+    return options;
   }
 
   static scaleModel(model, toUnits = "m", fromUnits)
